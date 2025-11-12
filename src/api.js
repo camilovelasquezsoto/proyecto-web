@@ -1,6 +1,8 @@
 // src/api.js
 
-const BASE_URL = "https://tickets.grye.org"; // ✅ base correcta sin /api
+// En desarrollo (localhost) llama directo al backend.
+// En producción (Netlify) usa el proxy /api definido en netlify.toml.
+const BASE_URL = import.meta.env.PROD ? "/api" : "https://tickets.grye.org";
 
 // Función genérica para peticiones HTTP
 async function request(endpoint, options = {}) {
@@ -41,7 +43,6 @@ export const api = {
     request("/checkout", { method: "POST", body: JSON.stringify(data) }),
 
   // ===== Compras / Historial =====
-  // Intenta varias rutas comunes para no romper la UI si /purchases no existe.
   getPurchases: async () => {
     const candidates = [
       "/purchases",
@@ -57,11 +58,13 @@ export const api = {
         return await request(path);
       } catch (e) {
         if (e.status === 404) continue; // prueba la siguiente
-        throw e; // errores reales (401/500/etc.)
+        throw e; // otros errores (401/500/etc.)
       }
     }
 
-    console.warn("⚠️ Ninguna ruta de compras respondió; devolviendo lista vacía.");
+    console.warn(
+      "⚠️ Ninguna ruta de compras respondió; devolviendo lista vacía."
+    );
     return [];
   },
 };
